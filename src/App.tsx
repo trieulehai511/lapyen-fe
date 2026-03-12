@@ -4,6 +4,8 @@ import Navbar from './components/Navbar';
 import Products from './pages/Products';
 import CategoryPage from './pages/CategoryPage';
 import LoginPage from './pages/LoginPage';
+import ProtectedRoute from './components/ProtectedRoute';
+import AdminDashboard from './pages/admin/AdminDashboard';
 
 function App() {
   return (
@@ -12,6 +14,8 @@ function App() {
         <Navbar />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/products" element={<Products />} />
             <Route path="/" element={
               <div className="text-center mt-20">
                 <h1 className="text-5xl font-serif text-vintage-primary mb-4">Chào mừng đến với Lapyen</h1>
@@ -19,10 +23,14 @@ function App() {
               </div>
             } />
             {/* Trỏ đường dẫn /products vào Component vừa tạo */}
-            <Route path="/products" element={<Products />} /> 
-            <Route path="/categories" element={<CategoryPage />} />
 
-            <Route path="/login" element={<LoginPage />} /> 
+
+            <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+              {/* <Route path="/add-product" element={<AddProduct />} /> */}
+              <Route path="/categories" element={<CategoryPage />} />
+              <Route path="/categories" element={<CategoryPage />} />
+            </Route>
           </Routes>
         </main>
       </div>

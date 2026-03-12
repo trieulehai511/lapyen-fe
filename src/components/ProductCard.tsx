@@ -16,11 +16,15 @@ const ProductCard: React.FC<Props> = ({ product }) => {
         <div className="bg-vintage-card border border-vintage-secondary/40 rounded-sm shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
             {/* Ảnh sản phẩm - thêm hiệu ứng ám vàng (sepia) nhẹ */}
             <div className="relative h-48 overflow-hidden bg-vintage-primary/10">
-                <img 
-                    src={product.imageUrl} 
-                    alt={product.name} 
+                <img
+                    src={product.imageUrl}
+                    alt={product.name}
                     className="w-full h-full object-cover sepia-[.2] hover:sepia-0 transition-all duration-500"
-                    onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/300?text=No+Image' }}
+                    onError={(e) => {
+                        const target = e.currentTarget;
+                        target.onerror = null; // QUAN TRỌNG: Ngắt vòng lặp bằng cách xóa handler này đi
+                        target.src = 'https://placehold.co/300x300?text=No+Image'; // Dùng link dự phòng khác ổn định hơn
+                    }}
                 />
                 {!product.isActive && (
                     <div className="absolute top-2 right-2 bg-red-800 text-white text-xs px-2 py-1 rounded font-serif">
@@ -40,7 +44,7 @@ const ProductCard: React.FC<Props> = ({ product }) => {
                 <p className="text-vintage-primary/80 text-sm mb-4 line-clamp-2 flex-grow">
                     {product.description || 'Chưa có mô tả cho sản phẩm này...'}
                 </p>
-                
+
                 <div className="flex justify-between items-end mt-auto pt-4 border-t border-vintage-secondary/20">
                     <div>
                         <p className="text-xs text-vintage-secondary mb-1">Giá bán</p>

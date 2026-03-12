@@ -1,10 +1,13 @@
-import axios from "axios";
-import type { AuthenticationRequest, AuthenticationResponse } from "../types";
+import axiosClient from './axiosClient';
+import type { AuthenticationRequest, AuthenticationResponse, UserResponse } from "../types";
 
 export const authApi = {
-    login: async (data: AuthenticationRequest): Promise<AuthenticationResponse> =>{
+    login: async (data: AuthenticationRequest): Promise<AuthenticationResponse> => {
         const url = '/auth/login';
-        return axios.post(url, data);
+        return axiosClient.post(url, data); 
+    },
+    getMyInfo: async (): Promise<UserResponse> => {
+        return axiosClient.get('/auth/me');
     },
     logout: () =>{
         localStorage.removeItem('token');

@@ -12,12 +12,20 @@ const LoginPage: React.FC = () => {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log(">>> Đã bấm nút Login với:", { username, password }); // Thêm dòng này để debug
         try {
             const res = await authApi.login({ username, password });
             if (res.authenticated) {
                 localStorage.setItem('token', res.token);
-                navigate('/products'); // Đăng nhập xong đẩy về trang hàng hoá
-                window.location.reload(); // Reload để Navbar cập nhật trạng thái
+                const userInfo = await authApi.getMyInfo();
+                localStorage.setItem('userRole', JSON.stringify(userInfo.roles));
+
+                if (userInfo.roles.includes('ADMIN')) {
+                    navigate('/admin'); // Vào trang quản trị
+                } else {
+                    navigate('/products'); // Khách hàng vào xem hàng
+                }
+                window.location.reload();
             }
         } catch (err) {
             if (axios.isAxiosError(err)) {
