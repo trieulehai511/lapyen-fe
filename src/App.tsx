@@ -1,7 +1,9 @@
 // src/App.tsx (Chỉ sửa phần import và Route)
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
-import Products from './pages/Products'; // Thêm dòng này
+import Products from './pages/Products';
+import CategoryPage from './pages/CategoryPage';
+import LoginPage from './pages/LoginPage';
 
 function App() {
   return (
@@ -18,6 +20,9 @@ function App() {
             } />
             {/* Trỏ đường dẫn /products vào Component vừa tạo */}
             <Route path="/products" element={<Products />} /> 
+            <Route path="/categories" element={<CategoryPage />} />
+
+            <Route path="/login" element={<LoginPage />} /> 
           </Routes>
         </main>
       </div>

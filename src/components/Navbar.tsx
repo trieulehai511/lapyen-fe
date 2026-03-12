@@ -1,13 +1,14 @@
 // src/components/Navbar.jsx
 import { Link } from 'react-router-dom';
 import { Coffee, ShoppingBag } from 'lucide-react'; // Dùng icon cho đẹp
-
+import { authApi } from '../api/authApi';
+const token = localStorage.getItem('token')
 const Navbar: React.FC = () => {
   return (
     <nav className="bg-vintage-primary text-vintage-card shadow-lg border-b-4 border-vintage-secondary">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          
+
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             <Coffee className="h-8 w-8 text-vintage-secondary" />
@@ -29,10 +30,19 @@ const Navbar: React.FC = () => {
               <ShoppingBag className="h-5 w-5" />
               <span>Giỏ hàng</span>
             </button>
+               {token ? (
+        <button onClick={() => authApi.logout()} className="text-vintage-accent underline font-serif">
+          Rời tiệm
+        </button>
+      ) : (
+        <Link to="/login" className="hover:text-vintage-secondary">Đăng nhập</Link>
+      )}
           </div>
 
         </div>
+     
       </div>
+      
     </nav>
   );
 };
