@@ -84,7 +84,12 @@ const AdminProductList: React.FC = () => {
                                 <td className="p-4 text-center font-mono">{p.stock}</td>
                                 <td className="p-4">
                                     <div className="flex justify-center gap-4">
-                                        <button className="text-blue-700 hover:scale-110 transition-transform"><Edit size={18} /></button>
+                                        <button className="text-blue-700 hover:scale-110 transition-transform"><Link
+                                            to={`/admin/products/edit/${p.id}`}
+                                            className="text-blue-700 hover:scale-110 transition-transform"
+                                        >
+                                            <Edit size={18} />
+                                        </Link></button>
                                         <button
                                             onClick={() => handleDelete(p.id)}
                                             className="text-red-700 hover:scale-110 transition-transform"

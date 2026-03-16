@@ -33,5 +33,9 @@ export const productApi = {
             formData
         );
         return response.data.secure_url;
+    },
+    getById: async(id: string): Promise<ProductResponse> => {
+        const url = `/products/${id}`;
+        return axiosClient.get(url);
     }
 };

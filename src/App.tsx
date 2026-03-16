@@ -31,6 +31,7 @@ function App() {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/admin/products" element={<AdminProductList />} />
               <Route path="/admin/add-product" element={<AddProduct />} /> 
+              <Route path="/admin/products/edit/:id" element={<AddProduct />} />
               <Route path="/categories" element={<CategoryPage />} />
             </Route>
           </Routes>

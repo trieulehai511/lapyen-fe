@@ -3,20 +3,40 @@ import { useForm } from 'react-hook-form';
 import { productApi } from '../../api/productApi';
 import { categoryApi } from '../../api/categoryApi';
 import type { Category, ProductRequest } from '../../types';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Save, ArrowLeft, ImagePlus, Loader2 } from 'lucide-react';
 
 const AddProduct: React.FC = () => {
-    const { register, handleSubmit } = useForm<ProductRequest>();
+    // 1. Lấy ID từ URL (nếu có) để xác định chế độ Sửa hay Thêm
+    const { id } = useParams<{ id: string }>(); 
+    const isEditMode = Boolean(id); 
+
+    // Lấy thêm hàm setValue từ useForm để điền dữ liệu tự động
+    const { register, handleSubmit, setValue, formState: { errors } } = useForm<ProductRequest>();
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [uploading, setUploading] = useState(false);
     const [file, setFile] = useState<File | null>(null);
     const [categories, setCategories] = useState<Category[]>([]);
     const navigate = useNavigate();
 
+    // 2. Tự động load dữ liệu cũ nếu đang ở chế độ Sửa
     useEffect(() => {
         categoryApi.getAll().then(setCategories);
-    }, []);
+
+        if (isEditMode && id) {
+            productApi.getById(id).then((product) => {
+                setValue('name', product.name);
+                setValue('price', product.price);
+                setValue('unit', product.unit);
+                setValue('categoryId', product.categoryId);
+                setImagePreview(product.imageUrl); // Hiện ảnh cũ lên
+            }).catch(err => {
+                console.error(err);
+                alert("Không tìm thấy thông tin mặt hàng này!");
+                navigate('/admin/products');
+            });
+        }
+    }, [id, isEditMode, setValue, navigate]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -29,7 +49,9 @@ const AddProduct: React.FC = () => {
     const onSubmit = async (data: ProductRequest) => {
         try {
             setUploading(true);
-            let finalImageUrl = "/media/img_default.png";
+            
+            // Nếu có chọn ảnh mới thì upload, không thì giữ link ảnh cũ
+            let finalImageUrl = imagePreview || "/media/img_default.png"; 
             if (file) {
                 finalImageUrl = await productApi.uploadImage(file);
             }
@@ -38,8 +60,14 @@ const AddProduct: React.FC = () => {
             data.categoryId = Number(data.categoryId);
             data.isActive = true;
 
-            await productApi.create(data); 
-            alert("Hàng đã về kho!");
+            // 3. Quyết định gọi hàm Create hay Update
+            if (isEditMode && id) {
+                await productApi.update(id, data);
+                alert("Đã cập nhật sổ sách thành công!");
+            } else {
+                await productApi.create(data); 
+                alert("Hàng mới đã về kho!");
+            }
             navigate('/admin/products'); 
         } catch (error) {
             console.error(error);
@@ -56,7 +84,7 @@ const AddProduct: React.FC = () => {
             </button>
 
             <h2 className="text-3xl font-serif text-vintage-primary mb-8 text-center border-b-2 border-vintage-secondary pb-4 italic">
-                Nhập Thêm Mặt Hàng
+                {isEditMode ? "Sửa Đổi Mặt Hàng" : "Nhập Thêm Mặt Hàng"}
             </h2>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-serif">
@@ -76,6 +104,7 @@ const AddProduct: React.FC = () => {
                     <div className="col-span-2">
                         <label className="block mb-1 font-bold">Tên mặt hàng</label>
                         <input {...register("name", { required: true })} className="w-full bg-transparent border-b border-vintage-secondary p-2 outline-none focus:border-vintage-primary" />
+                        {errors.name && <p className="text-red-700 text-xs italic mt-1">Ông quên nhập tên hàng kìa!</p>}
                     </div>
                     <div>
                         <label className="block mb-1 font-bold">Giá bán (VNĐ)</label>
@@ -98,11 +127,7 @@ const AddProduct: React.FC = () => {
                     type="submit" 
                     className="w-full bg-vintage-primary text-vintage-bg py-4 flex items-center justify-center gap-3 hover:bg-vintage-text transition-all font-bold"
                 >
-                    {uploading ? (
-                        <Loader2 className="animate-spin" />
-                    ) : (
-                        <><Save size={20} /> Đóng dấu lưu kho</>
-                    )}
+                    {uploading ? <Loader2 className="animate-spin" /> : <><Save size={20} /> Đóng dấu lưu kho</>}
                 </button>
             </form>
         </div>
