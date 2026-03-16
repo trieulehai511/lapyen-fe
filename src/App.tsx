@@ -6,6 +6,8 @@ import CategoryPage from './pages/CategoryPage';
 import LoginPage from './pages/LoginPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
+import AddProduct from './pages/admin/AddProduct';
+import AdminProductList from './pages/admin/AdminProductList';
 
 function App() {
   return (
@@ -27,8 +29,8 @@ function App() {
 
             <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
               <Route path="/admin" element={<AdminDashboard />} />
-              {/* <Route path="/add-product" element={<AddProduct />} /> */}
-              <Route path="/categories" element={<CategoryPage />} />
+              <Route path="/admin/products" element={<AdminProductList />} />
+              <Route path="/admin/add-product" element={<AddProduct />} /> 
               <Route path="/categories" element={<CategoryPage />} />
             </Route>
           </Routes>
