@@ -1,4 +1,4 @@
-import type { Category } from "../types";
+import type { Category } from '../types/product';
 import axiosClient from './axiosClient';
 
 export const categoryApi = {

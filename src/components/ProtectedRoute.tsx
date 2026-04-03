@@ -1,21 +1,21 @@
 import { Navigate, Outlet } from 'react-router-dom';
+import { useAuthStore } from '../store/useAuthStore'; 
 
 interface Props {
     requiredRole?: string;
 }
 
 const ProtectedRoute: React.FC<Props> = ({ requiredRole }) => {
-    const token = localStorage.getItem('token');
-    const userRoleRaw = localStorage.getItem('userRole');
-    const roles: string[] = userRoleRaw ? JSON.parse(userRoleRaw) : [];
+    // Đọc data từ RAM siêu tốc độ $\mathcal{O}(1)$
+    const { isAuthenticated, roles } = useAuthStore(); 
 
-    if (!token) return <Navigate to="/login" replace />;
+    if (!isAuthenticated) return <Navigate to="/login" replace />;
+
     if (requiredRole && !roles.includes(requiredRole)) {
-        alert("Bạn không có lệnh bài để vào khu vực này!");
-        return <Navigate to="/products" replace />;
+        return <Navigate to="/403" replace />; 
     }
 
     return <Outlet />;
 };
 
-export default ProtectedRoute
+export default ProtectedRoute;

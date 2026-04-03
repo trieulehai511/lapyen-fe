@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { productApi } from '../../api/productApi';
 import { categoryApi } from '../../api/categoryApi';
-import type { Category, ProductRequest } from '../../types';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Save, ArrowLeft, ImagePlus, Loader2 } from 'lucide-react';
+import type { Category, ProductRequest } from '../../types/product';
 
 const AddProduct: React.FC = () => {
     // 1. Lấy ID từ URL (nếu có) để xác định chế độ Sửa hay Thêm

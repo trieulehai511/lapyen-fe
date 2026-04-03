@@ -1,8 +1,9 @@
 // src/pages/Products.tsx
 import React, { useEffect, useState } from 'react';
 import { productApi } from '../api/productApi';
-import type { PageResponse, ProductResponse } from '../types';
 import ProductCard from '../components/ProductCard';
+import type { PageResponse } from '../types/common';
+import type { ProductResponse } from '../types/product';
 
 const Products: React.FC = () => {
     const [pageData, setPageData] = useState<PageResponse<ProductResponse> | null>(null);
@@ -29,7 +30,7 @@ const Products: React.FC = () => {
     return (
         <div className="py-8">
             <div className="text-center mb-10">
-                <h1 className="text-4xl font-serif text-vintage-text mb-3">Tạp hoá Lapyen</h1>
+                <h1 className="text-4xl font-serif text-vintage-text mb-3">SẢN PHẨM</h1>
                 <div className="h-1 w-24 bg-vintage-secondary mx-auto"></div>
             </div>
 

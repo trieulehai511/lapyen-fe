@@ -1,6 +1,7 @@
 // src/api/productApi.ts
+import type { PageResponse } from '../types/common';
+import type { ProductRequest, ProductResponse } from '../types/product';
 import axiosClient from './axiosClient';
-import type { PageResponse, ProductRequest, ProductResponse } from '../types';
 import axios from 'axios';
 export const productApi = {
 

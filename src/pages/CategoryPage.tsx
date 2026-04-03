@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react"
-import type { Category } from "../types";
 import { categoryApi } from "../api/categoryApi";
 import { PlusCircle, Tag } from "lucide-react";
+import type { Category } from "../types/product";
 
 const CategoryPage: React.FC = () =>{
     const [categories, setCategories] = useState<Category[]>([]);

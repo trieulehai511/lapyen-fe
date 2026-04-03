@@ -1,22 +1,25 @@
 import axios from "axios"
-
-
 const axiosClient = axios.create({
     baseURL: 'http://localhost:2512/lapyen_api',
+    timeout: 10000,
     headers: {
     'Content-Type': 'application/json',
   },
 })
 axiosClient.interceptors.response.use(
   (response) => {
-    if (response && response.data) {
-      return response.data.data; 
-    }
-    return response;
-  },
+        if (response.data && response.data.data !== undefined) {
+            return response.data.data; 
+        }
+        return response.data;
+    },
   (error) => {
-  
-    console.error("API Error:", error.response?.data?.message || error.message);
+    if (error.response?.status === 401) {
+        console.warn("Token tèo rồi, cút về Login!");
+        localStorage.removeItem('token');
+        localStorage.removeItem('userRole'); 
+        window.location.href = '/login'; 
+    }
     return Promise.reject(error);
   }
 );

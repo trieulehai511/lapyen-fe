@@ -8,22 +8,23 @@ import ProtectedRoute from './components/ProtectedRoute';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AddProduct from './pages/admin/AddProduct';
 import AdminProductList from './pages/admin/AdminProductList';
+import RegisterPage from './pages/RegisterPage';
+import HomePage from './pages/HomePage';
+import ProductDetail from './pages/ProductDetail';
+
 
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-vintage-bg text-vintage-text font-sans selection:bg-vintage-secondary selection:text-vintage-text">
+      <div className="min-h-screen bg-[#F5F2EB] text-[#2C3338] font-sans">
         <Navbar />
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <main className="w-full">
           <Routes>
+            <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
             <Route path="/products" element={<Products />} />
-            <Route path="/" element={
-              <div className="text-center mt-20">
-                <h1 className="text-5xl font-serif text-vintage-primary mb-4">Chào mừng đến với Lapyen</h1>
-                <p className="text-lg italic text-vintage-primary/80">Nơi lưu giữ những giá trị hoài niệm...</p>
-              </div>
-            } />
+            <Route path="/products/:id" element={<ProductDetail />} />
             {/* Trỏ đường dẫn /products vào Component vừa tạo */}
 
 

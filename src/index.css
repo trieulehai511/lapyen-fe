@@ -9,3 +9,15 @@ body {
 h1, h2, h3, h4, h5, h6 {
   @apply font-serif;
 }
+
+.product-card {
+  background-color: #F8F5EF; 
+  border: 1px solid #DED6C4; 
+  border-radius: 4px; 
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+  transition: box-shadow 0.3s ease; /* Hover cho mượt */
+}
+
+.product-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04); /* Hover thì nổi rõ hơn */
+}

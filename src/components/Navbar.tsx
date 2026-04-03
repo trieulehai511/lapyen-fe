@@ -1,48 +1,66 @@
-// src/components/Navbar.jsx
-import { Link } from 'react-router-dom';
-import { Coffee, ShoppingBag } from 'lucide-react'; // Dùng icon cho đẹp
-import { authApi } from '../api/authApi';
-const token = localStorage.getItem('token')
+// src/components/Navbar.tsx
+import { Link, useLocation } from 'react-router-dom';
+import { Search, ShoppingBag, User } from 'lucide-react';
+import { useAuthStore } from '../store/useAuthStore'; 
+
 const Navbar: React.FC = () => {
+  const { isAuthenticated, logout } = useAuthStore();
+  const location = useLocation();
+
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <nav className="bg-vintage-primary text-vintage-card shadow-lg border-b-4 border-vintage-secondary">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
+    <nav className="sticky top-0 z-50 bg-[#F5F2EB]/90 backdrop-blur-md border-b border-[#E0Dcd2]">
+      <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+        
+        {/* Logo Left */}
+        <Link to="/" className="font-serif text-2xl font-bold tracking-tight text-[#1A202C]">
+          lapyen <span className="italic font-light">1997</span>
+        </Link>
 
-          {/* Logo */}
-          <Link to="/" className="flex items-center space-x-3">
-            <Coffee className="h-8 w-8 text-vintage-secondary" />
-            <span className="font-serif text-2xl font-bold tracking-wider text-vintage-card">
-              Lapyen <span className="text-vintage-secondary italic font-light">199x</span>
-            </span>
+        {/* Menu Center (Desktop) */}
+        <div className="hidden md:flex space-x-10 font-serif text-sm tracking-widest uppercase text-[#4A5568]">
+          <Link to="/products" className={`hover:text-[#1A202C] transition-colors pb-1 ${isActive('/products') ? 'border-b border-[#1A202C] text-[#1A202C]' : ''}`}>
+            Cửa Hàng
           </Link>
-
-          {/* Menu */}
-          <div className="hidden md:flex space-x-8 font-serif text-lg">
-            <Link to="/" className="hover:text-vintage-secondary transition-colors duration-300">Trang chủ</Link>
-            <Link to="/products" className="hover:text-vintage-secondary transition-colors duration-300">Cửa hàng</Link>
-            <Link to="/categories" className="hover:text-vintage-secondary transition-colors duration-300">Bộ sưu tập</Link>
-          </div>
-
-          {/* Nút giỏ hàng/User */}
-          <div className="flex items-center space-x-4">
-            <button className="flex items-center space-x-2 bg-vintage-secondary text-vintage-text px-4 py-2 rounded-sm font-semibold hover:bg-vintage-card transition-colors">
-              <ShoppingBag className="h-5 w-5" />
-              <span>Giỏ hàng</span>
-            </button>
-               {token ? (
-        <button onClick={() => authApi.logout()} className="text-vintage-accent underline font-serif">
-          Rời tiệm
-        </button>
-      ) : (
-        <Link to="/login" className="hover:text-vintage-secondary">Đăng nhập</Link>
-      )}
-          </div>
-
+          <Link to="/categories" className={`hover:text-[#1A202C] transition-colors pb-1 ${isActive('/categories') ? 'border-b border-[#1A202C] text-[#1A202C]' : ''}`}>
+            Bộ Sưu Tập
+          </Link>
+          <Link to="/story" className={`hover:text-[#1A202C] transition-colors pb-1 ${isActive('/story') ? 'border-b border-[#1A202C] text-[#1A202C]' : ''}`}>
+            Câu Chuyện
+          </Link>
         </div>
-     
+
+        {/* Icons Right */}
+        <div className="flex items-center space-x-6 text-[#4A5568]">
+          {/* Search bar mini */}
+          <div className="hidden lg:flex items-center border-b border-[#A0AEC0] pb-1">
+            <Search className="w-4 h-4 mr-2" />
+            <input 
+              type="text" 
+              placeholder="Tìm kiếm..." 
+              className="bg-transparent border-none outline-none text-sm w-32 focus:w-48 transition-all duration-300 placeholder-[#A0AEC0]"
+            />
+          </div>
+
+          <button className="hover:text-[#1A202C] transition relative">
+            <ShoppingBag className="w-5 h-5" />
+            {/* Chấm đỏ báo có hàng (giả lập) */}
+            <span className="absolute -top-1 -right-1 bg-[#2C3338] w-2 h-2 rounded-full"></span>
+          </button>
+
+          {isAuthenticated ? (
+            <button onClick={logout} className="text-sm font-serif underline hover:text-[#1A202C] transition">
+              Rời Tiệm
+            </button>
+          ) : (
+            <Link to="/login" className="hover:text-[#1A202C] transition">
+              <User className="w-5 h-5" />
+            </Link>
+          )}
+        </div>
+
       </div>
-      
     </nav>
   );
 };

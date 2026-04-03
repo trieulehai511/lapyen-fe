@@ -1,5 +1,5 @@
+import type { AuthenticationRequest, AuthenticationResponse, UserCreationRequest, UserResponse } from '../types/auth';
 import axiosClient from './axiosClient';
-import type { AuthenticationRequest, AuthenticationResponse, UserResponse } from "../types";
 
 export const authApi = {
     login: async (data: AuthenticationRequest): Promise<AuthenticationResponse> => {
@@ -11,6 +11,10 @@ export const authApi = {
     },
     logout: () =>{
         localStorage.removeItem('token');
+        localStorage.removeItem('userRole');
         window.location.href ='/login';
+    },
+    register: async (data: UserCreationRequest): Promise<UserResponse> => {
+        return axiosClient.post('/users', data); 
     }
 }
