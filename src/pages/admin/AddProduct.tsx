@@ -1,225 +1,200 @@
 import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { useNavigate, useParams } from 'react-router-dom';
-import { Save, ArrowLeft, ImagePlus, Loader2 } from 'lucide-react';
-import { productApi } from '../../api/productApi';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { categoryApi } from '../../api/categoryApi';
+import { productApi } from '../../api/productApi';
 import type { Category, ProductRequest } from '../../types/product';
+
+type CategoryOption = Pick<Category, 'id' | 'name'>;
+
+type ProductFormData = {
+    name: string;
+    description: string;
+    price: number;
+    unit: string;
+    stock: number;
+    imageUrl: string;
+    categoryId: string;
+    isActive: boolean;
+};
+
+const defaultFormData: ProductFormData = {
+    name: '',
+    description: '',
+    price: 0,
+    unit: 'Món',
+    stock: 0,
+    imageUrl: '',
+    categoryId: '',
+    isActive: true,
+};
 
 const AddProduct: React.FC = () => {
     const { id } = useParams<{ id: string }>();
-    const isEditMode = Boolean(id);
     const navigate = useNavigate();
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
-    const [uploading, setUploading] = useState(false);
-    const [file, setFile] = useState<File | null>(null);
-    const [categories, setCategories] = useState<Category[]>([]);
+    const isEditMode = Boolean(id);
 
-    const {
-        register,
-        handleSubmit,
-        setValue,
-        formState: { errors },
-    } = useForm<ProductRequest>({
-        defaultValues: {
-            name: '',
-            description: '',
-            price: 0,
-            unit: '',
-            stock: 0,
-            imageUrl: '',
-            isActive: true,
-        },
-    });
+    const [formData, setFormData] = useState<ProductFormData>(defaultFormData);
+    const [categories, setCategories] = useState<CategoryOption[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [fetchingData, setFetchingData] = useState(isEditMode);
 
     useEffect(() => {
-        categoryApi.getAll().then(setCategories);
+        const loadInitialData = async () => {
+            try {
+                const catData = await categoryApi.getAll();
+                setCategories(catData.map(({ id, name }) => ({ id, name })));
 
-        if (!isEditMode || !id) {
-            return;
-        }
-
-        productApi.getById(id)
-            .then((product) => {
-                setValue('name', product.name);
-                setValue('description', product.description ?? '');
-                setValue('price', product.price);
-                setValue('unit', product.unit ?? '');
-                setValue('stock', product.stock ?? 0);
-                setValue('imageUrl', product.imageUrl ?? '');
-                setValue('isActive', product.isActive);
-                setValue('categoryId', product.categoryId);
-                setImagePreview(product.imageUrl);
-            })
-            .catch((error) => {
+                if (isEditMode && id) {
+                    const productInfo = await productApi.getById(id);
+                    setFormData({
+                        name: productInfo.name,
+                        description: productInfo.description || '',
+                        price: productInfo.price,
+                        unit: productInfo.unit || 'Món',
+                        stock: productInfo.stock,
+                        imageUrl: productInfo.imageUrl || '',
+                        categoryId: productInfo.categoryId.toString(),
+                        isActive: productInfo.isActive,
+                    });
+                }
+            } catch (error) {
                 console.error(error);
-                alert('Khong tim thay thong tin mat hang nay!');
-                navigate('/admin/products');
-            });
-    }, [id, isEditMode, navigate, setValue]);
+                alert('Lỗi khi tải dữ liệu. Hãy kiểm tra lại kết nối!');
+            } finally {
+                setFetchingData(false);
+            }
+        };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files?.[0]) {
+        loadInitialData();
+    }, [id, isEditMode]);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+        const { name, value, type } = e.target;
+
+        if (type === 'checkbox') {
+            const checked = (e.target as HTMLInputElement).checked;
+            setFormData((prev) => ({ ...prev, [name]: checked }));
             return;
         }
 
-        const selectedFile = e.target.files[0];
-        setFile(selectedFile);
-        setImagePreview(URL.createObjectURL(selectedFile));
+        if (name === 'price' || name === 'stock') {
+            setFormData((prev) => ({ ...prev, [name]: Number(value) }));
+            return;
+        }
+
+        setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const onSubmit = async (data: ProductRequest) => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
         try {
-            setUploading(true);
-
-            let finalImageUrl = imagePreview || '/media/img_default.png';
-            if (file) {
-                finalImageUrl = await productApi.uploadImage(file);
-            }
-
             const payload: ProductRequest = {
-                ...data,
-                name: data.name.trim(),
-                description: data.description?.trim() || '',
-                unit: data.unit?.trim() || '',
-                price: Number(data.price),
-                stock: Number(data.stock ?? 0),
-                imageUrl: finalImageUrl,
-                categoryId: Number(data.categoryId),
-                isActive: true,
+                ...formData,
+                categoryId: Number(formData.categoryId),
             };
 
             if (isEditMode && id) {
                 await productApi.update(id, payload);
-                alert('Da cap nhat san pham thanh cong!');
+                alert('Đã cập nhật sản phẩm thành công!');
             } else {
                 await productApi.create(payload);
-                alert('Da them san pham moi!');
+                alert('Đã thêm sản phẩm mới vào kho!');
             }
 
             navigate('/admin/products');
         } catch (error) {
             console.error(error);
-            alert('Co loi xay ra khi luu san pham!');
+            alert('Thao tác thất bại. Hãy kiểm tra lại thông tin!');
         } finally {
-            setUploading(false);
+            setLoading(false);
         }
     };
 
+    if (fetchingData) {
+        return (
+            <div className="flex h-64 items-center justify-center">
+                <Loader2 className="animate-spin text-[#1A202C]" size={40} />
+            </div>
+        );
+    }
+
     return (
-        <div className="max-w-2xl mx-auto bg-vintage-card p-8 border-2 border-vintage-primary shadow-[15px_15px_0px_0px_rgba(139,90,43,0.1)]">
-            <button
-                onClick={() => navigate(-1)}
-                className="flex items-center gap-2 text-vintage-primary mb-6 hover:underline font-serif"
-            >
-                <ArrowLeft size={18} /> Quay lai
-            </button>
-
-            <h3 className="text-3xl font-serif text-vintage-primary mb-8 text-center border-b-2 border-vintage-secondary pb-4 italic">
-                {isEditMode ? 'SỬA SẢN PHẨM' : 'THÊM SẢN PHẨM'}
-            </h3>
-
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 font-serif">
-                <div className="flex flex-col items-center justify-center border-2 border-dashed border-vintage-secondary p-4 bg-white/30">
-                    {imagePreview ? (
-                        <img
-                            src={imagePreview}
-                            alt="Preview"
-                            className="w-40 h-40 object-cover border-2 border-vintage-primary shadow-md mb-4"
-                        />
-                    ) : (
-                        <ImagePlus size={48} className="text-vintage-secondary mb-2" />
-                    )}
-
-                    <label className="bg-vintage-secondary text-vintage-bg px-4 py-2 cursor-pointer hover:bg-vintage-primary transition-all">
-                        {imagePreview ? 'Doi anh khac' : 'Chon anh san pham'}
-                        <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
-                    </label>
+        <div className="mx-auto max-w-4xl border border-[#DED6C4] bg-white p-8 shadow-sm">
+            <div className="mb-8 flex items-center gap-4 border-b border-[#DED6C4] pb-6">
+                <Link to="/admin/products" className="rounded-full p-2 text-[#4A5568] transition-colors hover:bg-[#EBE7DF] hover:text-[#1A202C]">
+                    <ArrowLeft size={24} />
+                </Link>
+                <div>
+                    <h2 className="font-serif text-3xl italic text-[#1A202C]">
+                        {isEditMode ? 'Chỉnh Sửa Sản Phẩm' : 'Nhập Sản Phẩm Mới'}
+                    </h2>
+                    <p className="mt-1 font-serif text-sm text-[#8B8378]">
+                        {isEditMode ? 'Cập nhật lại thông tin của vật phẩm.' : 'Bổ sung vật phẩm mới vào kho lưu trữ.'}
+                    </p>
                 </div>
+            </div>
 
-                <div className="grid grid-cols-2 gap-6">
-                    <div className="col-span-2">
-                        <label className="block mb-1 font-bold">Ten san pham</label>
-                        <input
-                            {...register('name', { required: true })}
-                            className="w-full bg-transparent border-b border-vintage-secondary p-2 outline-none focus:border-vintage-primary"
-                        />
-                        {errors.name && (
-                            <p className="text-red-700 text-xs italic mt-1">Vui long nhap ten san pham.</p>
-                        )}
-                    </div>
-
-                    <div className="col-span-2">
-                        <label className="block mb-1 font-bold">Mo ta</label>
-                        <textarea
-                            {...register('description')}
-                            rows={4}
-                            className="w-full bg-transparent border border-vintage-secondary p-2 outline-none focus:border-vintage-primary resize-none"
-                            placeholder="Them mo ta cho san pham..."
-                        />
-                    </div>
-
+            <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <div>
-                        <label className="block mb-1 font-bold">Gia ban (VND)</label>
-                        <input
-                            type="number"
-                            {...register('price', { required: true, valueAsNumber: true })}
-                            className="w-full bg-transparent border-b border-vintage-secondary p-2 outline-none"
-                        />
-                        {errors.price && (
-                            <p className="text-red-700 text-xs italic mt-1">Vui long nhap gia ban.</p>
-                        )}
+                        <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-[#8B8378]">Tên vật phẩm *</label>
+                        <input required type="text" name="name" value={formData.name} onChange={handleChange} className="w-full border border-[#DED6C4] bg-[#F8F5EF] p-3 font-serif focus:border-[#1A202C] focus:outline-none" placeholder="VD: Muối hồng Aethelgard..." />
                     </div>
-
                     <div>
-                        <label className="block mb-1 font-bold">Don vi</label>
-                        <input
-                            {...register('unit')}
-                            className="w-full bg-transparent border-b border-vintage-secondary p-2 outline-none"
-                            placeholder="Cai, kg, ly..."
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block mb-1 font-bold">So luong ton</label>
-                        <input
-                            type="number"
-                            min={0}
-                            {...register('stock', { required: true, valueAsNumber: true, min: 0 })}
-                            className="w-full bg-transparent border-b border-vintage-secondary p-2 outline-none"
-                        />
-                        {errors.stock && (
-                            <p className="text-red-700 text-xs italic mt-1">Vui long nhap so luong hop le.</p>
-                        )}
-                    </div>
-
-                    <div className="col-span-2">
-                        <label className="block mb-1 font-bold">Phan loai</label>
-                        <select
-                            {...register('categoryId', { required: true, valueAsNumber: true })}
-                            className="w-full bg-vintage-card border border-vintage-secondary p-2 outline-none"
-                            defaultValue=""
-                        >
-                            <option value="">-- Chon danh muc --</option>
-                            {categories.map((category) => (
-                                <option key={category.id} value={category.id}>
-                                    {category.name}
-                                </option>
+                        <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-[#8B8378]">Phân loại *</label>
+                        <select required name="categoryId" value={formData.categoryId} onChange={handleChange} className="w-full border border-[#DED6C4] bg-[#F8F5EF] p-3 font-serif focus:border-[#1A202C] focus:outline-none">
+                            <option value="" disabled>-- Chọn phân loại --</option>
+                            {categories.map((c) => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
                             ))}
                         </select>
-                        {errors.categoryId && (
-                            <p className="text-red-700 text-xs italic mt-1">Vui long chon danh muc.</p>
-                        )}
                     </div>
                 </div>
 
-                <button
-                    disabled={uploading}
-                    type="submit"
-                    className="w-full bg-vintage-primary text-vintage-bg py-4 flex items-center justify-center gap-3 hover:bg-vintage-text transition-all font-bold"
-                >
-                    {uploading ? <Loader2 className="animate-spin" /> : <><Save size={20} /> Luu san pham</>}
-                </button>
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                    <div>
+                        <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-[#8B8378]">Giá quy đổi (VND) *</label>
+                        <input required type="number" min="0" name="price" value={formData.price} onChange={handleChange} className="w-full border border-[#DED6C4] bg-[#F8F5EF] p-3 font-serif focus:border-[#1A202C] focus:outline-none" />
+                    </div>
+                    <div>
+                        <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-[#8B8378]">Số lượng kho *</label>
+                        <input required type="number" min="0" name="stock" value={formData.stock} onChange={handleChange} className="w-full border border-[#DED6C4] bg-[#F8F5EF] p-3 font-serif focus:border-[#1A202C] focus:outline-none" />
+                    </div>
+                    <div>
+                        <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-[#8B8378]">Đơn vị đo lường</label>
+                        <input type="text" name="unit" value={formData.unit} onChange={handleChange} className="w-full border border-[#DED6C4] bg-[#F8F5EF] p-3 font-serif focus:border-[#1A202C] focus:outline-none" placeholder="VD: Món, Lọ, Quyển..." />
+                    </div>
+                </div>
+
+                <div>
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-[#8B8378]">Hình ảnh (URL) *</label>
+                    <input required type="text" name="imageUrl" value={formData.imageUrl} onChange={handleChange} className="w-full border border-[#DED6C4] bg-[#F8F5EF] p-3 font-sans text-sm focus:border-[#1A202C] focus:outline-none" placeholder="https://..." />
+                    {formData.imageUrl && (
+                        <div className="mt-4 flex h-32 w-32 items-center justify-center border border-[#DED6C4] bg-[#1A1A1A] p-2">
+                            <img src={formData.imageUrl} alt="Preview" className="max-h-full max-w-full object-contain" onError={(e) => (e.currentTarget.src = 'https://via.placeholder.com/150?text=Image+Error')} />
+                        </div>
+                    )}
+                </div>
+
+                <div>
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-[#8B8378]">Mô tả</label>
+                    <textarea name="description" value={formData.description} onChange={handleChange} rows={5} className="w-full resize-none border border-[#DED6C4] bg-[#F8F5EF] p-3 font-serif focus:border-[#1A202C] focus:outline-none" placeholder="Ghi chép về nguồn gốc của sản phẩm..." />
+                </div>
+
+                <div className="flex items-center gap-3 border border-[#DED6C4] bg-[#EBE7DF] p-4">
+                    <input type="checkbox" id="isActive" name="isActive" checked={formData.isActive} onChange={handleChange} className="h-5 w-5 cursor-pointer accent-[#1A202C]" />
+                    <label htmlFor="isActive" className="cursor-pointer font-serif font-bold text-[#1A202C]">Cho phép lưu thông trên thị trường (Active)</label>
+                </div>
+
+                <div className="flex justify-end border-t border-[#DED6C4] pt-6">
+                    <button type="submit" disabled={loading} className="flex items-center gap-2 rounded-sm bg-[#1A202C] px-8 py-4 text-sm font-bold uppercase tracking-widest text-[#F5F2EB] transition-colors hover:bg-[#2C3338] disabled:opacity-50">
+                        {loading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                        {isEditMode ? 'Lưu Thay Đổi' : 'Tạo Mới'}
+                    </button>
+                </div>
             </form>
         </div>
     );

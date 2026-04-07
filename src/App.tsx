@@ -15,6 +15,7 @@ import CartPage from './pages/CartPage';
 import { useAuthStore } from './store/useAuthStore';
 import { useCartStore } from './store/useCartStore';
 import { useEffect } from 'react';
+import DashboardHome from './pages/admin/DashboardHome';
 
 
 function App() {
@@ -22,11 +23,11 @@ function App() {
   const fetchCart = useCartStore(state => state.fetchCart);
 
   useEffect(() => {
-        if (isAuthenticated) {
-            fetchCart();
-        }
-    }, [isAuthenticated, fetchCart]);
-    
+    if (isAuthenticated) {
+      fetchCart();
+    }
+  }, [isAuthenticated, fetchCart]);
+
   return (
     <Router>
       <div className="min-h-screen bg-[#F5F2EB] text-[#2C3338] font-sans">
@@ -43,11 +44,15 @@ function App() {
 
 
             <Route element={<ProtectedRoute requiredRole="ADMIN" />}>
-              <Route path="/admin" element={<AdminDashboard />} />
-              <Route path="/admin/products" element={<AdminProductList />} />
-              <Route path="/admin/add-product" element={<AddProduct />} />
-              <Route path="/admin/products/edit/:id" element={<AddProduct />} />
-              <Route path="/categories" element={<CategoryPage />} />
+              <Route path="/admin" element={<AdminDashboard />}>
+
+
+                <Route index element={<DashboardHome />} />
+                <Route path="products" element={<AdminProductList />} />
+                <Route path="add-product" element={<AddProduct />} />
+                <Route path="products/edit/:id" element={<AddProduct />} />
+                <Route path="categories" element={<CategoryPage />} />
+              </Route>
             </Route>
           </Routes>
         </main>
