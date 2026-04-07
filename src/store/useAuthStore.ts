@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useCartStore } from './useCartStore';
 interface AuthState{
     token: string | null;
     roles: string[];
@@ -28,6 +29,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     logout: () => {
         localStorage.removeItem('token');
         localStorage.removeItem('userRole');
+        useCartStore.getState().clearCart();
         set({ token: null, roles: [], isAuthenticated: false });
         window.location.href = '/login';
     },

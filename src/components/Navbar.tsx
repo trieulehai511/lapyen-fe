@@ -1,18 +1,19 @@
 // src/components/Navbar.tsx
 import { Link, useLocation } from 'react-router-dom';
 import { Search, ShoppingBag, User } from 'lucide-react';
-import { useAuthStore } from '../store/useAuthStore'; 
+import { useAuthStore } from '../store/useAuthStore';
+import { useCartStore } from '../store/useCartStore';
 
 const Navbar: React.FC = () => {
   const { isAuthenticated, logout } = useAuthStore();
   const location = useLocation();
 
   const isActive = (path: string) => location.pathname === path;
-
+  const totalItems =  useCartStore(state => state.totalItems);
   return (
     <nav className="sticky top-0 z-50 bg-[#F5F2EB]/90 backdrop-blur-md border-b border-[#E0Dcd2]">
       <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
-        
+
         {/* Logo Left */}
         <Link to="/" className="font-serif text-2xl font-bold tracking-tight text-[#1A202C]">
           lapyen <span className="italic font-light">1997</span>
@@ -36,18 +37,23 @@ const Navbar: React.FC = () => {
           {/* Search bar mini */}
           <div className="hidden lg:flex items-center border-b border-[#A0AEC0] pb-1">
             <Search className="w-4 h-4 mr-2" />
-            <input 
-              type="text" 
-              placeholder="Tìm kiếm..." 
+            <input
+              type="text"
+              placeholder="Tìm kiếm..."
               className="bg-transparent border-none outline-none text-sm w-32 focus:w-48 transition-all duration-300 placeholder-[#A0AEC0]"
             />
           </div>
 
-          <button className="hover:text-[#1A202C] transition relative">
+          <Link to="/cart" className="hover:text-[#1A202C] transition relative block"> {/* Đổi button thành Link để mốt sang trang Cart */}
             <ShoppingBag className="w-5 h-5" />
-            {/* Chấm đỏ báo có hàng (giả lập) */}
-            <span className="absolute -top-1 -right-1 bg-[#2C3338] w-2 h-2 rounded-full"></span>
-          </button>
+            
+            {/* 3. Hiển thị số lượng. Nếu > 0 mới hiện cục đỏ cho chuyên nghiệp */}
+            {totalItems > 0 && (
+                <span className="absolute -top-2 -right-2 bg-[#8B8378] text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
+                    {totalItems}
+                </span>
+            )}
+        </Link>
 
           {isAuthenticated ? (
             <button onClick={logout} className="text-sm font-serif underline hover:text-[#1A202C] transition">

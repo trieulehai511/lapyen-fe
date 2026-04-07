@@ -4,6 +4,7 @@ import { Lock, User } from 'lucide-react';
 import axios from 'axios';
 import { authApi } from '../api/authApi';
 import { useAuthStore } from '../store/useAuthStore';
+import { useCartStore } from '../store/useCartStore';
 
 const LoginPage: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -23,12 +24,8 @@ const LoginPage: React.FC = () => {
                 localStorage.setItem('token', res.token);
                 const userInfo = await authApi.getMyInfo();
                 setLoginState(res.token, userInfo.roles);
-
-                if (userInfo.roles.includes('ADMIN')) {
-                    navigate('/admin', { replace: true });
-                } else {
-                    navigate('/products', { replace: true });
-                }
+                await useCartStore.getState().fetchCart();
+                navigate(userInfo.roles.includes('ADMIN') ? '/admin' : '/products');
             }
         } catch (err) {
             if (axios.isAxiosError(err)) {

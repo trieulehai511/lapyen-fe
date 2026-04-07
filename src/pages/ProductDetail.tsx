@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import type { ProductResponse } from '../types/product';
 import { productApi } from '../api/productApi';
+import { useCartStore } from '../store/useCartStore';
 
 const priceFormatter = new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -14,6 +15,19 @@ const ProductDetail = () => {
     const [product,setProduct] = useState<ProductResponse | null >(null);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string>('');
+    const addItemToCart = useCartStore(state => state.addItem);
+
+    const handleAddtoCart = () =>{
+        if (!product) return;
+
+        addItemToCart({
+            productId: product.id,
+            productName: product.name,
+            productImageUrl: product.imageUrl,
+            price: product.price
+        });
+        alert(`Đã đưa "${product.name}" vào túi đồ của bạn!`);
+    }
 
     useEffect(()=>{
         let isMounted = true;
@@ -105,7 +119,8 @@ const ProductDetail = () => {
                             <span className="font-serif font-bold text-[#1A202C]">{product.stock}</span>
                         </div>
 
-                        <button 
+                        <button
+                            onClick={handleAddtoCart} 
                             disabled={!product.isActive || product.stock <= 0}
                             className="bg-[#1A202C] text-[#F5F2EB] py-4 px-8 uppercase tracking-[0.2em] text-sm hover:bg-[#2C3338] transition-colors disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto text-center"
                         >

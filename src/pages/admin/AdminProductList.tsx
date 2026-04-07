@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Edit, Trash2, Plus, PackageOpen, Loader2 } from 'lucide-react';
 import { productApi } from '../../api/productApi';
-import type { ProductResponse } from '../../types';
+import type { ProductResponse } from '../../types/product';
+
 
 const AdminProductList: React.FC = () => {
     const [products, setProducts] = useState<ProductResponse[]>([]);
